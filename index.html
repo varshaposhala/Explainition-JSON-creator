@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel to JSON</title>
+  <link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script> 
+</head>
+<body>
+<div>
+  <input type="file" id="fileInput" />
+  <button onclick="handleFile()">Display JSON</button>
+</div>
+<br>
+<br>
+<div >
+
+    <div class="container">
+        
+        <div>
+            <h2>Input JSON</h2>
+            <textarea id="jsonOutput"></textarea>
+            <br><button id="process" onclick="onProcess()">Process</button>
+        </div>
+
+        <div>
+            <h2>Output </h2>
+            <textarea id="output1"></textarea>
+        </div>
+        
+    </div>
+   
+</div>
+
+  <script>
+    function onProcess() {
+    let data=document.getElementById("jsonOutput").value;
+    if (!data) {
+        alert("Invalid input");
+        return;
+    }
+    const data_json = JSON.parse(data);
+    // Function to replace all occurrences of UUID with a new one
+    const extractData = (prompt_responses) => {
+
+        let final_json_sheet = [];
+        
+        prompt_responses.forEach(prompt_response => {
+            let question_data = {};
+            question_data["question_id"] = prompt_response["question_id"];
+            let explanation_for_answer = {};
+            explanation_for_answer["content"]=prompt_response["answer_explanation_content"];
+            explanation_for_answer["content_type"]="HTML";
+                
+           question_data.explanation_for_answer=explanation_for_answer;
+           
+            
+            final_json_sheet.push(question_data);
+        });
+        
+        const jsonData = JSON.stringify(final_json_sheet);
+        document.getElementById("output1").value = jsonData;
+        
+      
+    }
+    extractData(data_json);
+   
+
+
+    
+}
+
+    function handleFile() {
+      const fileInput = document.getElementById('fileInput');
+      const jsonOutput = document.getElementById('jsonOutput');
+
+      const file = fileInput.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const data = e.target.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+
+          // Assuming the first sheet is the target sheet
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+
+          // Convert sheet data to JSON
+          const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+          // Display JSON in the textarea
+          jsonOutput.value = JSON.stringify(jsonData, null, 2);
+        };
+
+        reader.readAsBinaryString(file);
+      } else {
+        alert('Please select a file.');
+      }
+    }
+  </script>
+
+</body>
+</html>
